@@ -1,0 +1,44 @@
+name: Deploy to Cloud Run
+
+on:
+  push:
+    branches: [ "main" ]
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    env:
+      GCP_PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
+      GCP_REGION: ${{ secrets.GCP_REGION }}
+      CLOUD_RUN_SERVICE: ${{ secrets.CLOUD_RUN_SERVICE }}
+      FIRESTORE_DB: ${{ secrets.FIRESTORE_DB }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Google Auth
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+
+      - name: Setup gcloud
+        uses: google-github-actions/setup-gcloud@v2
+        with:
+          project_id: ${{ env.GCP_PROJECT_ID }}
+
+      - name: gcloud info
+        run: gcloud --version
+
+      - name: Deploy to Cloud Run (source build)
+        run: |
+          gcloud run deploy "$CLOUD_RUN_SERVICE" \
+            --source ./hello-prodify \
+            --region "$GCP_REGION" \
+            --allow-unauthenticated \
+            --set-env-vars FIRESTORE_DB="$FIRESTORE_DB"
+
