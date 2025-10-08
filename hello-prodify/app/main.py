@@ -1,12 +1,46 @@
 from fastapi import FastAPI, Depends, HTTPException, status
+from fastapi.responses import HTMLResponse, JSONResponse
 from app.auth import verify_bearer_token
 from app.roles import get_roles
 
-app = FastAPI()
+app = FastAPI(title="Prodify", version="0.1")
 
-@app.get("/")
-def read_root():
-    return {"message": "Hello from Prodify on Cloud Run!"}
+# ---------- Public ----------
+@app.get("/", response_class=HTMLResponse)
+def home():
+    return """
+    <!doctype html>
+    <html>
+      <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width,initial-scale=1" />
+        <title>Prodify is live</title>
+        <style>
+          body { font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif; margin: 40px; }
+          .card { max-width: 720px; margin: 0 auto; padding: 24px; border: 1px solid #eee; border-radius: 12px; box-shadow: 0 4px 24px rgba(0,0,0,0.06); }
+          h1 { margin: 0 0 12px; }
+          code, pre { background: #f6f8fa; padding: 2px 6px; border-radius: 6px; }
+          ul { line-height: 1.8; }
+          .muted { color: #666; font-size: 14px; }
+          a { color: #0d62ff; text-decoration: none; }
+          a:hover { text-decoration: underline; }
+        </style>
+      </head>
+      <body>
+        <div class="card">
+          <h1>🚢 Prodify is live on Cloud Run</h1>
+          <p>Your backend is running. Useful links:</p>
+          <ul>
+            <li><a href="/docs">OpenAPI docs</a> (interactive)</li>
+            <li><a href="/health">/health</a> (health check JSON)</li>
+            <li><code>GET /private</code> — requires <code>Authorization: Bearer &lt;ID_TOKEN&gt;</code></li>
+            <li><code>GET /admin</code> — same as above, plus Firestore role <code>admin</code></li>
+          </ul>
+          <p class="muted">Tip: curl your service URL with <code>/health</code> to check status.</p>
+        </div>
+      </body>
+    </html>
+    """
 
 @app.get("/health")
 def health():
@@ -16,7 +50,7 @@ def health():
 def healthz():
     return {"status": "ok"}
 
-# Any signed-in user
+# ---------- Auth-protected ----------
 @app.get("/private")
 def private(claims: dict = Depends(verify_bearer_token)):
     return {
@@ -36,7 +70,6 @@ def require_role(role: str):
         return {"claims": claims, "roles": roles}
     return _dep
 
-# Admin-only
 @app.get("/admin")
 def admin(_ctx: dict = Depends(require_role("admin"))):
     return {"ok": True, "roles": _ctx["roles"]}
