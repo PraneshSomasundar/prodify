@@ -74,3 +74,8 @@ def require_role(role: str):
 def admin(_ctx: dict = Depends(require_role("admin"))):
     return {"ok": True, "roles": _ctx["roles"]}
 
+@app.get("/boom")
+def boom():
+    # Intentionally crash to verify Error Reporting on staging
+    raise RuntimeError("Test error reporting from Prodify staging")
+
