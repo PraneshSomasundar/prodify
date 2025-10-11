@@ -79,3 +79,8 @@ def boom():
     # Intentionally crash to verify Error Reporting on staging
     raise RuntimeError("Test error reporting from Prodify staging")
 
+
+@app.get("/boom")
+def boom():
+    # Intentionally crash to verify Error Reporting on staging
+    raise RuntimeError("Test error reporting from Prodify staging")
