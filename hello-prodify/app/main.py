@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Depends, HTTPException, status
+from fastapi import FastAPI, Depends, Response  # added Response
 from fastapi.responses import HTMLResponse, JSONResponse
 from app.auth import verify_bearer_token
 from app.roles import get_roles
@@ -42,6 +42,11 @@ def home():
     </html>
     """
 
+# NEW: respond 200 OK to HEAD requests on "/"
+@app.head("/", include_in_schema=False)
+def home_head():
+    return Response(status_code=200)
+
 @app.get("/health")
 def health():
     return {"status": "ok"}
@@ -61,26 +66,14 @@ def private(claims: dict = Depends(verify_bearer_token)):
         "audience": claims.get("aud"),
     }
 
-def require_role(role: str):
-    def _dep(claims: dict = Depends(verify_bearer_token)):
-        user_id = claims.get("user_id") or claims.get("sub")
-        roles = get_roles(user_id)
-        if role not in roles:
-            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Forbidden: missing role")
-        return {"claims": claims, "roles": roles}
-    return _dep
-
-@app.get("/admin")
-def admin(_ctx: dict = Depends(require_role("admin"))):
-    return {"ok": True, "roles": _ctx["roles"]}
-
-@app.get("/boom")
-def boom():
-    # Intentionally crash to verify Error Reporting on staging
-    raise RuntimeError("Test error reporting from Prodify staging")
 
 
-@app.get("/boom")
-def boom():
-    # Intentionally crash to verify Error Reporting on staging
-    raise RuntimeError("Test error reporting from Prodify staging")
+
+
+
+
+
+
+
+
+
