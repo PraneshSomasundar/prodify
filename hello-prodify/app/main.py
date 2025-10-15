@@ -1,12 +1,13 @@
-from fastapi import FastAPI, Depends, HTTPException, status
-from fastapi.responses import HTMLResponse, JSONResponse
+from fastapi import FastAPI, Depends
+from fastapi.responses import HTMLResponse
 from app.auth import verify_bearer_token
 from app.roles import get_roles
 
 app = FastAPI(title="Prodify", version="0.1")
 
 # ---------- Public ----------
-@app.get("/", response_class=HTMLResponse)
+# Support both GET and HEAD on "/"
+@app.api_route("/", methods=["GET", "HEAD"], response_class=HTMLResponse)
 def home():
     return """
     <!doctype html>
@@ -60,17 +61,4 @@ def private(claims: dict = Depends(verify_bearer_token)):
         "issuer": claims.get("iss"),
         "audience": claims.get("aud"),
     }
-
-def require_role(role: str):
-    def _dep(claims: dict = Depends(verify_bearer_token)):
-        user_id = claims.get("user_id") or claims.get("sub")
-        roles = get_roles(user_id)
-        if role not in roles:
-            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Forbidden: missing role")
-        return {"claims": claims, "roles": roles}
-    return _dep
-
-@app.get("/admin")
-def admin(_ctx: dict = Depends(require_role("admin"))):
-    return {"ok": True, "roles": _ctx["roles"]}
 
