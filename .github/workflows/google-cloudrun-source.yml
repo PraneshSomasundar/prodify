@@ -8,6 +8,8 @@ env:
   PROJECT_ID: prodify-474400
   REGION: us-central1
   SERVICE: hello-prodify
+  FIRESTORE_DB: prodifydb
+  BUILD_SA_EMAIL: github-deployer@prodify-474400.iam.gserviceaccount.com
 
 jobs:
   deploy:
@@ -26,17 +28,12 @@ jobs:
           credentials_json: ${{ secrets.GCP_SA_KEY }}
           project_id: ${{ env.PROJECT_ID }}
 
-      - id: deploy
-        name: Deploy to Cloud Run
+      - name: Deploy to Cloud Run
         uses: google-github-actions/deploy-cloudrun@v2
         with:
           service: ${{ env.SERVICE }}
-          region: ${{ env.REGION }}
-          source: ./hello-prodify
-          flags: >
-            --allow-unauthenticated
-            --set-env-vars=FIRESTORE_DB=${{ secrets.FIRESTORE_DB }}
-
-      - name: Show output URL
-        run: echo "${{ steps.deploy.outputs.url }}"
-
+          region:  ${{ env.REGION }}
+          source:  ./hello-prodify
+          env_vars: |
+            FIRESTORE_DB=${{ env.FIRESTORE_DB }}
+          build_service_account: projects/${{ env.PROJECT_ID }}/serviceAccounts/${{ env.BUILD_SA_EMAIL }}
