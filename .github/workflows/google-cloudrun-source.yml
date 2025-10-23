@@ -36,4 +36,4 @@ jobs:
           source:  ./hello-prodify
           env_vars: |
             FIRESTORE_DB=${{ env.FIRESTORE_DB }}
-          build_service_account: projects/${{ env.PROJECT_ID }}/serviceAccounts/${{ env.BUILD_SA_EMAIL }}
+          
