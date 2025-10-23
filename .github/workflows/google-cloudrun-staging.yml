@@ -38,4 +38,4 @@ jobs:
           env_vars: |
             FIRESTORE_DB=${{ env.FIRESTORE_DB }}
             ENV=${{ env.ENV }}
-          build_service_account: projects/${{ env.PROJECT_ID }}/serviceAccounts/${{ env.BUILD_SA_EMAIL }}
+          
