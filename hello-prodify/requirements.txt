@@ -5,3 +5,4 @@ requests
 google-cloud-firestore
 
 email-validator
+gunicorn
